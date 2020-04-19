@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="FlowLayoutView" >
+        <attr name="layout_weight" format="integer"/>
+        <attr name="layout_gravity" format="integer"/>
+    </declare-styleable>
+</resources>
