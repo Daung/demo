@@ -1,0 +1,3 @@
+rootProject.name='IPCService'
+include ':app'
+include ':ipcclient'
