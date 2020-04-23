@@ -1,0 +1,5 @@
+rootProject.name='AssemblyDemo'
+include ':app'
+include ':loginmodule'
+include ':mymodule'
+include ':basemodule'
