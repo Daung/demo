@@ -1,5 +1,6 @@
 package com.wzy.iocdemo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -29,8 +30,10 @@ public class MainActivity extends BaseActivity {
 
     @OnClick({R.id.btn1, R.id.btn2})
     public void execClick(View view) {
-        Button button = (Button) view;
-        Toast.makeText(this, button.getText(), Toast.LENGTH_SHORT).show();
+//        Button button = (Button) view;
+//        Toast.makeText(this, button.getText(), Toast.LENGTH_SHORT).show();
+
+        startActivity(new Intent(this, RecyclerViewActivity.class));
 
     }
 

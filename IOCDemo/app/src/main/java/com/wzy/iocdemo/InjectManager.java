@@ -1,9 +1,13 @@
 package com.wzy.iocdemo;
 
 import android.util.Log;
+import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
@@ -38,10 +42,10 @@ public class InjectManager {
         }
     }
 
-    private static void handlerClickListener(Object object) {
+    private static void handlerClickListener(final Object object) {
         Class<?> aClass = object.getClass();
         Method[] declaredMethods = aClass.getDeclaredMethods();
-        for (Method declaredMethod : declaredMethods) {
+        for (final Method declaredMethod : declaredMethods) {
             try {
                 Annotation[] annotations = declaredMethod.getAnnotations();
                 if (annotations.length <= 0) {
@@ -55,6 +59,63 @@ public class InjectManager {
                         continue;
                     }
 
+
+
+                    OnItemClickListener onItemClickListener = annotationType.getAnnotation(OnItemClickListener.class);
+                    //自我感觉 如果不是多态注解，使用这种方式获取注解
+                    onItemClickListener = declaredMethod.getAnnotation(OnItemClickListener.class);
+                    if (onItemClickListener != null) {
+                        int[] ids = onItemClickListener.value();
+                        for (int id : ids) {
+                            Method findViewById = aClass.getMethod("findViewById", int.class);
+                            Object view = findViewById.invoke(object, id);
+                            if (!(view instanceof RecyclerView)) {
+                                throw new IllegalArgumentException("must be recycler view id");
+                            }
+
+                            final RecyclerView recyclerView = (RecyclerView) view;
+                            RecyclerViewOnItemClickListener<Person> listener = new RecyclerViewOnItemClickListener<>
+                                    (recyclerView, new RecyclerViewOnItemClickListener.OnItemClickListener<Person>() {
+                                        @Override
+                                        public void onItemClick(View view, Person data, int position) {
+                                            try {
+                                                declaredMethod.invoke(object, view, data, position);
+                                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                            recyclerView.addOnItemTouchListener(listener);
+                        }
+                    }
+
+                    OnItemLongClickListener onLongClickListener = declaredMethod.getAnnotation(OnItemLongClickListener.class);
+                    if (onLongClickListener != null) {
+                        int[] ids = onLongClickListener.value();
+                        for (int id : ids) {
+                            Method findViewById = aClass.getMethod("findViewById", int.class);
+                            Object view = findViewById.invoke(object, id);
+                            if (!(view instanceof RecyclerView)) {
+                                throw new IllegalArgumentException("must be recycler view id");
+                            }
+
+                            final RecyclerView recyclerView = (RecyclerView) view;
+                            RecyclerViewOnItemClickListener<Person> listener = new RecyclerViewOnItemClickListener<>
+                                    (recyclerView, new RecyclerViewOnItemClickListener.OnItemLongClickListener<Person>() {
+                                        @Override
+                                        public void onLongItemClick(View view, Person data, int position) {
+                                            try {
+                                                declaredMethod.invoke(object, view, data, position);
+                                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                            recyclerView.addOnItemTouchListener(listener);
+                        }
+                    }
+
+                    //自我感觉   注解多态 使用这种方法获取注解
                     BaseEvent baseEvent = annotationType.getAnnotation(BaseEvent.class);
                     if (baseEvent == null) {
                         continue;
