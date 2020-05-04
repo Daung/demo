@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:discard="@color/colorPrimary"
+    tools:keep="@layout/activity_main"
+    tools:shrinkMode="strict" />
+
+<!--keep 保持不混淆-->
+<!--discard 表示混淆-->
+
+<!--shrinkMode 表示使用严格模式-->
