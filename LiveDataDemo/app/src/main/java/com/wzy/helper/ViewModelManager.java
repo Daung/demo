@@ -3,6 +3,7 @@ package com.wzy.helper;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.SavedStateViewModelFactory;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -27,26 +28,54 @@ public class ViewModelManager {
     }
 
 
-
     private ViewModelProvider createViewModelProvider(@NonNull FragmentActivity activity) {
-        return new ViewModelProvider(activity);
+        return createViewModelProvider(activity, null);
     }
 
     private ViewModelProvider createViewModelProvider(@NonNull Fragment fragment) {
+        return createViewModelProvider(fragment, null);
+    }
+
+
+    private ViewModelProvider createViewModelProvider(@NonNull FragmentActivity activity, ViewModelProvider.Factory factory) {
+        if (factory != null) {
+            return new ViewModelProvider(activity, factory);
+        }
+        return new ViewModelProvider(activity);
+    }
+
+    private ViewModelProvider createViewModelProvider(@NonNull Fragment fragment, ViewModelProvider.Factory factory) {
+        if (factory != null) {
+            return new ViewModelProvider(fragment, factory);
+        }
         return new ViewModelProvider(fragment);
     }
 
     public <T extends ViewModel> void bindActivity(@NonNull FragmentActivity activity, @NonNull String name, Class<T> aClass) {
-        ViewModel viewModel = viewModels.get(name);
-        if (viewModel == null) {
-            addViewModel(createViewModelProvider(activity), name, aClass);
-        }
+        bindActivity(activity, name, aClass, null);
     }
 
     public <T extends ViewModel> void bindFragment(@NonNull Fragment fragment, @NonNull String name, Class<T> aClass) {
+        bindFragment(fragment, name, aClass, null);
+    }
+
+    public <T extends ViewModel> void bindActivity(@NonNull FragmentActivity activity,
+                                                   @NonNull String name,
+                                                   Class<T> aClass,
+                                                   SavedStateViewModelFactory factory) {
+        ViewModel viewModel = viewModels.get(name);
+        if (viewModel == null) {
+            addViewModel(createViewModelProvider(activity, factory), name, aClass);
+        }
+    }
+
+    public <T extends ViewModel> void bindFragment(@NonNull Fragment fragment,
+                                                   @NonNull String name,
+                                                   Class<T> aClass,
+                                                   SavedStateViewModelFactory factory) {
         ViewModel viewModel = viewModels.get(name);
         if (viewModel != null) {
-            addViewModel(createViewModelProvider(fragment), name, aClass);
+            addViewModel(createViewModelProvider(fragment, factory), name, aClass);
         }
     }
 
@@ -60,6 +89,7 @@ public class ViewModelManager {
     public <T extends ViewModel> T getViewModel(@NonNull String name) {
         return (T) viewModels.get(name);
     }
+
 
 
     public void removeViewModel(@NonNull String name) {
