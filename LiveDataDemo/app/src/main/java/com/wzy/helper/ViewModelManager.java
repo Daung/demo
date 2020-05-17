@@ -7,6 +7,8 @@ import androidx.lifecycle.SavedStateViewModelFactory;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.wzy.livedatademo.MyApplication;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +16,7 @@ public class ViewModelManager {
     private static ViewModelManager instance;
 
     private Map<String, ViewModel> viewModels = new HashMap<>();
+    private Map<Object, SavedStateViewModelFactory> factoryMap = new HashMap<>();
 
 
     public static ViewModelManager of() {
@@ -52,30 +55,54 @@ public class ViewModelManager {
     }
 
     public <T extends ViewModel> void bindActivity(@NonNull FragmentActivity activity, @NonNull String name, Class<T> aClass) {
-        bindActivity(activity, name, aClass, null);
-    }
-
-    public <T extends ViewModel> void bindFragment(@NonNull Fragment fragment, @NonNull String name, Class<T> aClass) {
-        bindFragment(fragment, name, aClass, null);
-    }
-
-    public <T extends ViewModel> void bindActivity(@NonNull FragmentActivity activity,
-                                                   @NonNull String name,
-                                                   Class<T> aClass,
-                                                   SavedStateViewModelFactory factory) {
         ViewModel viewModel = viewModels.get(name);
         if (viewModel == null) {
-            addViewModel(createViewModelProvider(activity, factory), name, aClass);
+            addViewModel(createViewModelProvider(activity), name, aClass);
         }
     }
 
-    public <T extends ViewModel> void bindFragment(@NonNull Fragment fragment,
-                                                   @NonNull String name,
-                                                   Class<T> aClass,
-                                                   SavedStateViewModelFactory factory) {
+    public <T extends ViewModel> void bindFragment(@NonNull Fragment fragment, @NonNull String name, Class<T> aClass) {
+        ViewModel viewModel = viewModels.get(name);
+        if (viewModel == null) {
+            addViewModel(createViewModelProvider(fragment), name, aClass);
+        }
+    }
+
+
+    public <T extends ViewModel> void bindSavedActivity(@NonNull FragmentActivity activity,
+                                                        @NonNull String name,
+                                                        Class<T> aClass) {
+        ViewModel viewModel = viewModels.get(name);
+        if (viewModel == null) {
+            checkNonNullFactory(activity);
+            addViewModel(createViewModelProvider(activity, factoryMap.get(activity)), name, aClass);
+        }
+    }
+
+
+    public <T extends ViewModel> void bindSavedFragment(@NonNull Fragment fragment,
+                                                        @NonNull String name,
+                                                        Class<T> aClass) {
         ViewModel viewModel = viewModels.get(name);
         if (viewModel != null) {
-            addViewModel(createViewModelProvider(fragment, factory), name, aClass);
+            checkNonNullFactory(fragment);
+            addViewModel(createViewModelProvider(fragment, factoryMap.get(fragment)), name, aClass);
+        }
+    }
+
+    private void checkNonNullFactory(@NonNull FragmentActivity activity) {
+        SavedStateViewModelFactory factory = factoryMap.get(activity);
+        if (factory == null) {
+            factory = new SavedStateViewModelFactory(MyApplication.of(), activity);
+            factoryMap.put(activity, factory);
+        }
+    }
+
+    private void checkNonNullFactory(@NonNull Fragment fragment) {
+        SavedStateViewModelFactory factory = factoryMap.get(fragment);
+        if (factory == null) {
+            factory = new SavedStateViewModelFactory(MyApplication.of(), fragment);
+            factoryMap.put(fragment, factory);
         }
     }
 
@@ -91,9 +118,12 @@ public class ViewModelManager {
     }
 
 
-
     public void removeViewModel(@NonNull String name) {
         viewModels.remove(name);
+    }
+
+    public void removeFactory(@NonNull Object object) {
+        factoryMap.remove(object);
     }
 
 
